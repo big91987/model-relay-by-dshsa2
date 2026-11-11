@@ -1,0 +1,16 @@
+services:
+  gateway:
+    build: .
+    image: model-gateway:local
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:-}
+    volumes:
+      - gateway-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  gateway-data:
