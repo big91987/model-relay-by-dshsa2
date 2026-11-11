@@ -52,6 +52,9 @@ func seedAdmin(st *store.Store, password string) error {
 	} else if ok {
 		return nil
 	}
+	if password == "" {
+		return fmt.Errorf("ADMIN_PASSWORD is required on first startup")
+	}
 	hash, err := auth.HashPassword(password)
 	if err != nil {
 		return fmt.Errorf("hash admin password: %w", err)

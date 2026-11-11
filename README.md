@@ -21,11 +21,12 @@
 # 1) 构建前端（产物在 web/dist，Go 服务从磁盘提供）
 cd web && pnpm install && pnpm build && cd ..
 
-# 2) 启动网关（默认 :8080，数据库 ./data/gateway.db）
+# 2) 启动网关（首次启动必须设置管理员密码；已有数据库沿用已存密码）
+export ADMIN_PASSWORD="<设置一个强密码>"
 go run ./cmd/server
 ```
 
-打开 <http://localhost:8080>，默认管理员 `admin / admin123`（首次启动写入数据库，请通过环境变量修改）。
+打开 <http://localhost:8080>，用户名 `admin`，密码是首次启动时设置的 `ADMIN_PASSWORD`。
 
 前端开发模式（热更新，`/api` 与 `/v1` 代理到 :8080）：
 
@@ -36,15 +37,17 @@ cd web && pnpm dev    # http://localhost:5173
 ### Docker
 
 ```bash
+export ADMIN_PASSWORD="<设置一个强密码>"
 docker compose up --build   # http://localhost:8080，数据持久化到 Docker 卷 gateway-data
 ```
 
 也可以不使用 Docker Compose：
 
 ```bash
+export ADMIN_PASSWORD="<设置一个强密码>"
 docker build -t model-gateway:local .
 docker run --rm -p 8080:8080 -v gateway-data:/app/data \
-  -e ADMIN_PASSWORD=change-me model-gateway:local
+  -e ADMIN_PASSWORD="$ADMIN_PASSWORD" model-gateway:local
 ```
 
 ### 环境变量
@@ -54,7 +57,7 @@ docker run --rm -p 8080:8080 -v gateway-data:/app/data \
 | `PORT` | `8080` | HTTP 监听端口 |
 | `DATABASE_PATH` | `./data/gateway.db` | SQLite 路径，目录自动创建 |
 | `ADMIN_USERNAME` | `admin` | 管理员用户名 |
-| `ADMIN_PASSWORD` | `admin123` | 首次启动时写入的管理员密码 |
+| `ADMIN_PASSWORD` | 首次启动必填 | 首次启动写入的管理员密码；已有数据库沿用已存密码 |
 | `JWT_SECRET` | 随机生成并持久化 | 管理台 JWT 签名密钥 |
 | `WEB_DIST` | `web/dist` | 前端构建产物目录 |
 
@@ -64,7 +67,7 @@ docker run --rm -p 8080:8080 -v gateway-data:/app/data \
 # 登录管理台，拿到 admin JWT
 TOKEN=$(curl -s -X POST localhost:8080/api/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"username":"admin","password":"admin123"}' | jq -r .token)
+  -d "{\"username\":\"admin\",\"password\":\"$ADMIN_PASSWORD\"}" | jq -r .token)
 
 # 新建上游渠道（任意 OpenAI 兼容服务）；model_mapping 可选
 curl -s -X POST localhost:8080/api/channels \
@@ -78,7 +81,7 @@ curl -s -X POST localhost:8080/api/channels/1/test \
 # 修改管理员密码
 curl -s -X PUT localhost:8080/api/auth/password \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"old_password":"admin123","new_password":"change-me"}'
+  -d "{\"old_password\":\"$ADMIN_PASSWORD\",\"new_password\":\"<新密码>\"}"
 
 # 新建网关密钥，响应里的 key 只出现这一次
 curl -s -X POST localhost:8080/api/tokens \

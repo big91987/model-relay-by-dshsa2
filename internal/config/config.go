@@ -19,7 +19,7 @@ func Load() Config {
 		Port:          getenv("PORT", "8080"),
 		DatabasePath:  getenv("DATABASE_PATH", "./data/gateway.db"),
 		AdminUsername: getenv("ADMIN_USERNAME", "admin"),
-		AdminPassword: getenv("ADMIN_PASSWORD", "admin123"),
+		AdminPassword: getenv("ADMIN_PASSWORD", ""),
 		JWTSecret:     os.Getenv("JWT_SECRET"),
 		WebDist:       getenv("WEB_DIST", "web/dist"),
 	}

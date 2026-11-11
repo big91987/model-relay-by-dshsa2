@@ -13,9 +13,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/big91987/model-relay-by-dshsa2/internal/auth"
 	"github.com/big91987/model-relay-by-dshsa2/internal/config"
 	"github.com/big91987/model-relay-by-dshsa2/internal/store"
 )
+
+func randomTestPassword() string {
+	value, err := auth.RandomHex(12)
+	if err != nil {
+		panic(err)
+	}
+	return "test-" + value
+}
+
+var testAdminPassword = randomTestPassword()
 
 func newTestApp(t *testing.T) (*httptest.Server, *store.Store) {
 	t.Helper()
@@ -24,7 +35,7 @@ func newTestApp(t *testing.T) (*httptest.Server, *store.Store) {
 		Port:          "0",
 		DatabasePath:  filepath.Join(dir, "test.db"),
 		AdminUsername: "admin",
-		AdminPassword: "admin123",
+		AdminPassword: testAdminPassword,
 		WebDist:       filepath.Join(dir, "web"),
 	}
 	st, err := store.Open(cfg.DatabasePath)
@@ -76,7 +87,7 @@ func request(t *testing.T, method, url, token string, body any) (int, map[string
 
 func login(t *testing.T, base string) string {
 	t.Helper()
-	status, body := request(t, http.MethodPost, base+"/api/auth/login", "", map[string]string{"username": "admin", "password": "admin123"})
+	status, body := request(t, http.MethodPost, base+"/api/auth/login", "", map[string]string{"username": "admin", "password": testAdminPassword})
 	if status != http.StatusOK {
 		t.Fatalf("login status = %d body=%v", status, body)
 	}

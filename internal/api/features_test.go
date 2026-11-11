@@ -97,26 +97,27 @@ func TestChannelConnectivityTest(t *testing.T) {
 func TestAdminPasswordChange(t *testing.T) {
 	app, _ := newTestApp(t)
 	admin := login(t, app.URL)
+	newPassword := randomTestPassword()
 
 	status, _ := request(t, http.MethodPut, app.URL+"/api/auth/password", admin, map[string]string{
-		"old_password": "wrong", "new_password": "newpass123",
+		"old_password": "wrong", "new_password": newPassword,
 	})
 	if status != http.StatusBadRequest && status != http.StatusUnauthorized {
 		t.Fatalf("wrong old password status = %d", status)
 	}
 	status, body := request(t, http.MethodPut, app.URL+"/api/auth/password", admin, map[string]string{
-		"old_password": "admin123", "new_password": "newpass123",
+		"old_password": testAdminPassword, "new_password": newPassword,
 	})
 	if status != http.StatusOK {
 		t.Fatalf("change password status = %d body=%v", status, body)
 	}
 	if status, _ := request(t, http.MethodPost, app.URL+"/api/auth/login", "", map[string]string{
-		"username": "admin", "password": "admin123",
+		"username": "admin", "password": testAdminPassword,
 	}); status != http.StatusUnauthorized {
 		t.Fatalf("old password still works, status = %d", status)
 	}
 	if status, _ := request(t, http.MethodPost, app.URL+"/api/auth/login", "", map[string]string{
-		"username": "admin", "password": "newpass123",
+		"username": "admin", "password": newPassword,
 	}); status != http.StatusOK {
 		t.Fatalf("new password login status = %d", status)
 	}

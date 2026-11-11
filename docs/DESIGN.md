@@ -46,7 +46,7 @@ logs(id, token_id, token_name, channel_id, channel_name, model, prompt_tokens,
 settings(key TEXT PRIMARY KEY, value TEXT)  -- 管理员密码哈希、JWT secret
 ```
 
-初始化：管理员用户名固定 `admin`，密码取 `ADMIN_PASSWORD`（默认 `admin123`），bcrypt 存 `settings`；JWT secret 取 `JWT_SECRET`，否则随机生成并持久化。
+初始化：管理员用户名固定 `admin`，首次启动必须设置 `ADMIN_PASSWORD`（不提供默认密码），bcrypt 存 `settings`；已有数据库沿用已存密码。JWT secret 取 `JWT_SECRET`，否则随机生成并持久化。
 
 ## 管理 API（Bearer JWT）
 
